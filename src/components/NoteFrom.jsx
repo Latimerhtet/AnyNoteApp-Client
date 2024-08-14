@@ -1,22 +1,28 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { Formik, Form, Field } from "formik";
 import StyledErrMsg from "./StyledErrMsg";
 import * as yup from "yup";
 
-import { ToastContainer, toast } from "react-toastify";
+import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { IconButton, Tooltip } from "@mui/material";
 const NoteFrom = ({ isCreate, editNote }) => {
+  const fileRef = useRef();
   const initialValues = {
-    title: editNote.title || "",
-    content: editNote.content || "",
+    title: (editNote && editNote.title) || "",
+    content: (editNote && editNote.content) || "",
+    profile_img: isCreate ? null : editNote.profile_img,
   };
-  console.log(initialValues.title);
 
   const [redirect, setRedirect] = useState(false);
+  const [fileImg, setFileImg] = useState(null);
 
+  // format for images
+  const SUPPORTED_FORMATS = ["image/jpg", "image/png", "image/jpeg"];
   // Note form validate schema
   const noteFormSchema = yup.object({
     title: yup
@@ -25,54 +31,70 @@ const NoteFrom = ({ isCreate, editNote }) => {
       .max(20, "title is too long")
       .required("title is required!"),
     content: yup.string().required("Content is required!"),
+    profile_img: yup
+      .mixed()
+      .nullable()
+      .test("fileFormat", "File is not supported", (value) => {
+        if (value) {
+          const supportedFormats = ["jpg", "png", "jpeg"];
+          return supportedFormats.includes(value.name.split(".").pop());
+        }
+        return true;
+      }),
   });
+
+  // file input handle function
+  const handleFileInput = (event, setFieldValue) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFileImg(URL.createObjectURL(selectedFile));
+      setFieldValue("profile_img", selectedFile);
+    }
+  };
+
+  // removing file input
+  const removeFileImg = (setFieldValue) => {
+    setFileImg(null);
+    setFieldValue("profile_img", null);
+  };
 
   // form submit function
   const submit = async (values) => {
+    let APIURL;
     if (isCreate) {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
+      APIURL = `${import.meta.env.VITE_API_URL}/create`;
+    } else {
+      APIURL = `${import.meta.env.VITE_API_URL}/edit/${editNote._id}`;
+    }
+    const formData = new FormData();
+    formData.append("title", values.title);
+    formData.append("content", values.content);
+    formData.append("profile_img", values.profile_img);
+    const response = await fetch(APIURL, {
+      method: "POST",
+      body: formData,
+    });
+    if (response.status === 201) {
+      setRedirect(true);
+    } else {
+      toast("Something went wrong!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: "Bounce",
       });
-      if (response.status === 201) {
-        setRedirect(true);
-      } else {
-        toast("Something went wrong!", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: "Bounce",
-        });
-      }
-    } else if (!isCreate) {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/edit/${editNote._id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
-      if (response.status === 201) {
-        setRedirect(true);
-      }
     }
   };
   if (redirect) {
     return <Navigate to={"/"} />;
   }
   return (
-    <section className="p-8">
+    <section className="p-8 mb-10">
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -84,6 +106,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
         draggable
         pauseOnHover
         theme="light"
+        transition={Bounce}
       />
       {/* Same as */}
       <ToastContainer />
@@ -104,10 +127,12 @@ const NoteFrom = ({ isCreate, editNote }) => {
         onSubmit={submit}
         validationSchema={noteFormSchema}
       >
-        {() => (
-          <Form>
+        {({ values, setFieldValue }) => (
+          <Form encType="multipart/form-data">
             <div className="flex flex-col gap-3 mb-4">
-              <label htmlFor="title">Note Title</label>
+              <label htmlFor="title" className="font-bold">
+                Note Title
+              </label>
               <Field
                 type="text"
                 id="title"
@@ -116,8 +141,57 @@ const NoteFrom = ({ isCreate, editNote }) => {
               />
               <StyledErrMsg name="title" />
             </div>
+            <div className="flex flex-col gap-3 mb-4 items-start">
+              <label htmlFor="profile_img" className="font-bold">
+                Cover Image <span className="font-medium">(Optional)</span>
+              </label>
+              <input
+                type="file"
+                id="profile_img"
+                name="profile_img"
+                hidden
+                ref={fileRef}
+                onChange={(e) => handleFileInput(e, setFieldValue)}
+              />
+              <div className="flex gap-5 items-start">
+                <div
+                  type="button"
+                  onClick={() => {
+                    fileRef.current.click();
+                  }}
+                  className="cursor-pointer relative p-8 px-12 flex gap-3 items-center border-2 border-dashed border-fuchsia-600 text-fuchsia-600 rounded-lg "
+                >
+                  <span className="flex gap-3 items-center font-extrabold z-50">
+                    <CloudUploadIcon />
+                    Upload
+                  </span>
+
+                  {fileImg && (
+                    <img
+                      src={fileImg}
+                      className="absolute top-0 left-0 h-full w-full opacity-40 object-cover   z-0"
+                      alt="selected image"
+                    />
+                  )}
+                </div>
+                {fileImg && (
+                  <Tooltip title="remove">
+                    <IconButton
+                      type="button"
+                      className="text-xl"
+                      onClick={() => removeFileImg(setFieldValue)}
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                <StyledErrMsg name="profile_img" />
+              </div>
+            </div>
             <div className="flex flex-col gap-3 mb-4">
-              <label htmlFor="content">Note Content</label>
+              <label htmlFor="content" className="font-bold">
+                Note Content
+              </label>
               <Field
                 as="textarea"
                 rows={10}
@@ -132,7 +206,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
               type="submit"
               className="bg-fuchsia-600 p-3 text-white w-1/3 float-end font-bold rounded-md"
             >
-              Save
+              {isCreate ? "Save note" : "Update note"}
             </button>
           </Form>
         )}

@@ -3,7 +3,7 @@ import NoteCard from "../components/NoteCard";
 import Plus from "../components/Plus";
 import { Rings } from "react-loader-spinner";
 
-import { ToastContainer, toast } from "react-toastify";
+import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const Home = () => {
   const [notes, setNotes] = useState([]);
@@ -33,48 +33,51 @@ const Home = () => {
     });
   };
   return (
-    <section className="p-8 flex  gap-5 flex-wrap">
-      {!loading && notes.length > 0 ? (
-        <>
-          {notes.map((note) => {
-            return (
-              <NoteCard
-                key={note._id}
-                note={note}
-                getNotes={getNotes}
-                customAlert={customAlert}
-              />
-            );
-          })}
-        </>
-      ) : (
-        <div className="w-full mt-20 flex justify-center items-center">
-          <Rings
-            visible={loading}
-            height="80"
-            width="80"
-            color="#c026d3"
-            ariaLabel="rings-loading"
-            wrapperStyle={{}}
-            wrapperClass=""
-          />
-        </div>
-      )}
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      {/* Same as */}
-      <ToastContainer />
-      <Plus />
+    <section className="p-8 flex justify-center">
+      <div className="flex gap-5 flex-wrap">
+        {!loading && notes.length > 0 ? (
+          <>
+            {notes.map((note) => {
+              return (
+                <NoteCard
+                  key={note._id}
+                  note={note}
+                  getNotes={getNotes}
+                  customAlert={customAlert}
+                />
+              );
+            })}
+          </>
+        ) : (
+          <div className="w-full mt-20 flex justify-center items-center">
+            <Rings
+              visible={loading}
+              height="80"
+              width="80"
+              color="#c026d3"
+              ariaLabel="rings-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+            />
+          </div>
+        )}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={true}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          transition={Bounce}
+        />
+        {/* Same as */}
+        <ToastContainer />
+        <Plus />
+      </div>
     </section>
   );
 };
