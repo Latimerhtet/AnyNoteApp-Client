@@ -56,6 +56,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
   const removeFileImg = (setFieldValue) => {
     setFileImg(null);
     setFieldValue("profile_img", null);
+    fileRef.current.value = "";
   };
 
   // form submit function
@@ -165,13 +166,40 @@ const NoteFrom = ({ isCreate, editNote }) => {
                     <CloudUploadIcon />
                     Upload
                   </span>
-
-                  {fileImg && (
-                    <img
-                      src={fileImg}
-                      className="absolute top-0 left-0 h-full w-full opacity-40 object-cover   z-0"
-                      alt="selected image"
-                    />
+                  {isCreate ? (
+                    <>
+                      {fileImg && (
+                        <img
+                          src={fileImg}
+                          className="absolute top-0 left-0 h-full w-full opacity-40 object-cover   z-0"
+                          alt="selected image"
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {editNote.profile_img ? (
+                        <img
+                          src={
+                            fileImg
+                              ? fileImg
+                              : `${import.meta.env.VITE_API_URL}/${
+                                  editNote.profile_img
+                                }`
+                          }
+                          className="absolute top-0 left-0 h-full w-full opacity-40 object-cover   z-0"
+                          alt="selected image"
+                        />
+                      ) : (
+                        fileImg && (
+                          <img
+                            src={fileImg}
+                            className="absolute top-0 left-0 h-full w-full opacity-40 object-cover   z-0"
+                            alt="selected image"
+                          />
+                        )
+                      )}
+                    </>
                   )}
                 </div>
                 {fileImg && (
