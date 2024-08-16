@@ -28,7 +28,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
     title: yup
       .string()
       .min(3, "title is too short")
-      .max(20, "title is too long")
+      .max(100, "title is too long")
       .required("title is required!"),
     content: yup.string().required("Content is required!"),
     profile_img: yup
