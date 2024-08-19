@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { MdEdit } from "react-icons/md";
 import { FaEye } from "react-icons/fa6";
 import { IoTrash } from "react-icons/io5";
@@ -8,8 +8,10 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Backdrop from "@mui/material/Backdrop";
 import NoteDetail from "./NoteDetail";
+import { UserContext } from "../contexts/UserContext";
 
 const NoteCard = ({ note, getNotes, customAlert }) => {
+  const { token } = useContext(UserContext);
   const { title, content, createdAt, _id } = note;
   const [open, setOpen] = useState(false);
   const handleClose = () => {
@@ -25,6 +27,9 @@ const NoteCard = ({ note, getNotes, customAlert }) => {
       `${import.meta.env.VITE_API_URL}/delete/${_id}`,
       {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.token}`,
+        },
       }
     );
     if (response.status === 204) {

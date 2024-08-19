@@ -6,6 +6,8 @@ import Create from "./pages/Create";
 import Edit from "./pages/Edit";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Unauthorized from "./components/Unauthorized";
+import isLoginLoader from "../utils/isLogin";
 const App = () => {
   const router = createBrowserRouter([
     {
@@ -13,10 +15,11 @@ const App = () => {
       element: <Main />,
       children: [
         { index: true, element: <Home /> },
-        { path: "/create", element: <Create /> },
-        { path: "/edit/:id", element: <Edit /> },
+        { path: "/create", element: <Create />, loader: isLoginLoader },
+        { path: "/edit/:id", element: <Edit />, loader: isLoginLoader },
         { path: "/login", element: <Login /> },
         { path: "/register", element: <Register /> },
+        { path: "/unauthorized", element: <Unauthorized /> },
       ],
     },
   ]);

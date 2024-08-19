@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 
 // import for validation with formik
 import { Formik, Form, Field } from "formik";
@@ -6,7 +6,9 @@ import StyledErrMsg from "./StyledErrMsg";
 import * as yup from "yup";
 import { Link, Navigate } from "react-router-dom";
 import { Alert, Fade, Snackbar } from "@mui/material";
+import { UserContext, UserContextProvider } from "../contexts/UserContext";
 const AuthForm = ({ isLogin }) => {
+  const { token, updatedToken } = useContext(UserContext);
   const [redirect, setRedirect] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [snackbarOpen, setSnackBarOpen] = useState(false);
@@ -36,7 +38,6 @@ const AuthForm = ({ isLogin }) => {
   const authSubmit = async (values) => {
     const { username, email, password } = values;
     setSubmitting(true);
-    console.log(values);
 
     let url = `${import.meta.env.VITE_API_URL}/register`;
     let userData = { username, email, password };
@@ -55,6 +56,11 @@ const AuthForm = ({ isLogin }) => {
     });
     const data = await response.json();
     if (response.status === 201) {
+      setSubmitting(false);
+      setRedirect(true);
+    } else if (response.status === 200) {
+      console.log(data);
+      updatedToken(data);
       setSubmitting(false);
       setRedirect(true);
     } else if (response.status === 401) {

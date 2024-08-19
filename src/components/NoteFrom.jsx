@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { Formik, Form, Field } from "formik";
@@ -10,6 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { IconButton, Tooltip } from "@mui/material";
+import { UserContext } from "../contexts/UserContext";
 const NoteFrom = ({ isCreate, editNote }) => {
   const fileRef = useRef();
   const initialValues = {
@@ -17,7 +18,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
     content: (editNote && editNote.content) || "",
     profile_img: isCreate ? null : editNote.profile_img,
   };
-
+  const { token } = useContext(UserContext);
   const [redirect, setRedirect] = useState(false);
   const [fileImg, setFileImg] = useState(null);
 
@@ -71,10 +72,15 @@ const NoteFrom = ({ isCreate, editNote }) => {
     formData.append("title", values.title);
     formData.append("content", values.content);
     formData.append("profile_img", values.profile_img);
+    console.log(token.token);
     const response = await fetch(APIURL, {
       method: "POST",
       body: formData,
+      headers: {
+        Authorization: `Bearer ${token.token}`,
+      },
     });
+
     if (response.status === 201) {
       setRedirect(true);
     } else {

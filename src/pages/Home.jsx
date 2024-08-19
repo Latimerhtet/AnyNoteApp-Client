@@ -32,6 +32,7 @@ const Home = () => {
     getNotes(currentPage);
   }, [currentPage]);
 
+  console.log(notes);
   const customAlert = (message) => {
     toast.success(message, {
       position: "top-right",
@@ -85,6 +86,7 @@ const Home = () => {
             />
           </div>
         )}
+        {!loading && notes.length < 1 && <p>You haven't added any note yet</p>}
         <ToastContainer
           position="top-right"
           autoClose={5000}
