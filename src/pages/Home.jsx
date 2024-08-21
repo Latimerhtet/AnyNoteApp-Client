@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import NoteCard from "../components/NoteCard";
 import Plus from "../components/Plus";
 import { Rings } from "react-loader-spinner";
@@ -8,7 +8,12 @@ import "react-toastify/dist/ReactToastify.css";
 
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { UserContext } from "../contexts/UserContext";
+import { useNavigate } from "react-router-dom";
+import { Alert, Slide, Snackbar } from "@mui/material";
 const Home = () => {
+  const { token, setSnackBarOpen, snackbarOpen, snackbarMsg, severity } =
+    useContext(UserContext);
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState();
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,7 +37,6 @@ const Home = () => {
     getNotes(currentPage);
   }, [currentPage]);
 
-  console.log(notes);
   const customAlert = (message) => {
     toast.success(message, {
       position: "top-right",
@@ -57,8 +61,24 @@ const Home = () => {
       setCurrentPage((pre) => pre + 1);
     }
   };
+  // handling cloase or open for snackbar alert box
+  const handleClose = () => {
+    setSnackBarOpen(false);
+  };
   return (
     <section className="p-8 flex justify-center">
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        TransitionComponent={Slide}
+        key={Slide}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleClose} severity={severity} variant="filled">
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
       <div className="flex gap-5 flex-wrap">
         {!loading && notes.length > 0 ? (
           <>
@@ -102,7 +122,8 @@ const Home = () => {
         />
         {/* Same as */}
         <ToastContainer />
-        <Plus />
+        {token && <Plus />}
+
         <div className="flex items-center justify-center gap-5 w-full">
           {currentPage !== 1 && currentPage < totalPagesAvailable && (
             <>

@@ -5,10 +5,10 @@ import { Formik, Form, Field } from "formik";
 import StyledErrMsg from "./StyledErrMsg";
 import * as yup from "yup";
 import { Link, Navigate } from "react-router-dom";
-import { Alert, Fade, Snackbar } from "@mui/material";
+import { Alert, Fade, Slide, Snackbar } from "@mui/material";
 import { UserContext, UserContextProvider } from "../contexts/UserContext";
 const AuthForm = ({ isLogin }) => {
-  const { token, updatedToken } = useContext(UserContext);
+  const { token, updatedToken, setReload } = useContext(UserContext);
   const [redirect, setRedirect] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [snackbarOpen, setSnackBarOpen] = useState(false);
@@ -56,28 +56,28 @@ const AuthForm = ({ isLogin }) => {
     });
     const data = await response.json();
     if (response.status === 201) {
-      setSubmitting(false);
       setRedirect(true);
+      setReload(true);
     } else if (response.status === 200) {
       console.log(data);
       updatedToken(data);
-      setSubmitting(false);
+
       setRedirect(true);
+      setReload(true);
     } else if (response.status === 401) {
-      setSubmitting(false);
       setSnackBarOpen(true);
       setSnackBarMsg(data.message);
       setTimeout(() => {
         setSnackBarOpen(false);
       }, 2000);
     } else {
-      setSubmitting(false);
       setSnackBarOpen(true);
       setSnackBarMsg(data.errorsMsg[0].msg);
       setTimeout(() => {
         setSnackBarOpen(false);
       }, 2000);
     }
+    setSubmitting(false);
   };
 
   if (redirect) {
@@ -149,7 +149,10 @@ const AuthForm = ({ isLogin }) => {
                 </Link>
               )}
               {submitting ? (
-                <button className="bg-fuchsia-600 p-3 text-white w-1/3 float-end font-bold rounded-md disabled:text-lime-500-600  ">
+                <button
+                  className="bg-fuchsia-600 p-3 text-white w-1/3 float-end font-bold rounded-md disabled:text-lime-500-600 disabled "
+                  disabled={submitting}
+                >
                   Submitting...
                 </button>
               ) : (
@@ -165,9 +168,10 @@ const AuthForm = ({ isLogin }) => {
         )}
       </Formik>
       <Snackbar
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         open={snackbarOpen}
-        TransitionComponent={Fade}
-        key={Fade}
+        TransitionComponent={Slide}
+        key={Slide}
         autoHideDuration={1200}
       >
         <Alert severity="error">{snackbarMsg}</Alert>

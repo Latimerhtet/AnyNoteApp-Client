@@ -11,8 +11,9 @@ import NoteDetail from "./NoteDetail";
 import { UserContext } from "../contexts/UserContext";
 
 const NoteCard = ({ note, getNotes, customAlert }) => {
-  const { token } = useContext(UserContext);
-  const { title, content, createdAt, _id } = note;
+  const { token, setSeverity, setSnackBarMsg, setSnackBarOpen } =
+    useContext(UserContext);
+  const { title, content, createdAt, _id, author } = note;
   const [open, setOpen] = useState(false);
   const handleClose = () => {
     setOpen(false);
@@ -22,19 +23,42 @@ const NoteCard = ({ note, getNotes, customAlert }) => {
   };
   const formatedDate = formatISO(createdAt, { representation: "date" });
 
-  const deleteNote = async () => {
+  const handleDeleteNote = async () => {
+    const localToken = JSON.parse(localStorage.getItem("token"));
+    if (!localToken) {
+      return redirect("/");
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/status`, {
+      headers: { Authorization: `Bearer ${localToken.token}` },
+    });
+    if (response.status === 401) {
+      localStorage.setItem("token", null);
+      window.location.reload(false);
+      return redirect("/");
+    } else {
+      deleteNote();
+    }
+  };
+  const deleteNote = async (localToken) => {
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/delete/${_id}`,
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token.token}`,
+          Authorization: `Bearer ${local.token}`,
         },
       }
     );
     if (response.status === 204) {
       getNotes();
-      customAlert("Deleted Successfully!");
+      setSeverity("success");
+      setSnackBarMsg("Deleted Successfully!");
+      setSnackBarOpen(true);
+    } else {
+      setSeverity("error");
+      setSnackBarMsg("Something went wrong!");
+      setSnackBarOpen(true);
     }
   };
   return (
@@ -57,19 +81,22 @@ const NoteCard = ({ note, getNotes, customAlert }) => {
         >
           <NoteDetail note={note} />
         </Backdrop>
-
-        <Link to={`/edit/${_id}`}>
-          <Tooltip title="Edit">
-            <IconButton>
-              <MdEdit className=" text-xl cursor-pointer  text-fuchsia-600 " />
-            </IconButton>
-          </Tooltip>
-        </Link>
-        <Tooltip title="Delete" onClick={deleteNote}>
-          <IconButton>
-            <IoTrash className="text-xl cursor-pointer text-red-600 " />
-          </IconButton>
-        </Tooltip>
+        {token && author._id === token.id && (
+          <>
+            <Link to={`/edit/${_id}`}>
+              <Tooltip title="Edit">
+                <IconButton>
+                  <MdEdit className=" text-xl cursor-pointer  text-fuchsia-600 " />
+                </IconButton>
+              </Tooltip>
+            </Link>
+            <Tooltip title="Delete" onClick={handleDeleteNote}>
+              <IconButton>
+                <IoTrash className="text-xl cursor-pointer text-red-600 " />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
       </div>
     </section>
   );

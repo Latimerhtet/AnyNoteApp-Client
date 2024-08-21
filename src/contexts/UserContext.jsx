@@ -8,7 +8,11 @@ export const UserContextProvider = ({ children }) => {
     const existingToken = localStorage.getItem("token");
     return existingToken ? JSON.parse(existingToken) : null;
   });
-
+  const [reload, setReload] = useState(false);
+  // for snackbar alert boxes
+  const [snackbarOpen, setSnackBarOpen] = useState(false);
+  const [snackbarMsg, setSnackBarMsg] = useState("");
+  const [severity, setSeverity] = useState("");
   const updatedToken = (jwtToken) => {
     const token = JSON.stringify(jwtToken);
     console.log(token);
@@ -28,7 +32,21 @@ export const UserContextProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ token, updatedToken, signOut }}>
+    <UserContext.Provider
+      value={{
+        token,
+        updatedToken,
+        signOut,
+        reload,
+        setReload,
+        snackbarMsg,
+        setSeverity,
+        setSnackBarOpen,
+        setSnackBarMsg,
+        snackbarOpen,
+        severity,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

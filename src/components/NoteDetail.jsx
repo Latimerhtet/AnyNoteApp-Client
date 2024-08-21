@@ -19,10 +19,10 @@ const NoteDetail = ({ note }) => {
         <ModeRoundedIcon />
         {title}
       </p>
-      <p className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4">
         <Person3Icon />
-        <p className=" font-bold">{author.username}</p>
-      </p>
+        <h2 className=" font-bold">{author.username}</h2>
+      </div>
       <p className="mb-5  ">{content}</p>
       <p className="text-black text-sm font-bold flex items-center gap-3">
         <CalendarMonthIcon />

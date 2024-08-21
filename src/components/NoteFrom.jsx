@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { Formik, Form, Field } from "formik";
@@ -9,18 +9,22 @@ import { Bounce, ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { IconButton, Tooltip } from "@mui/material";
+import { Alert, IconButton, Slide, Snackbar, Tooltip } from "@mui/material";
 import { UserContext } from "../contexts/UserContext";
+
 const NoteFrom = ({ isCreate, editNote }) => {
   const fileRef = useRef();
   const initialValues = {
     title: (editNote && editNote.title) || "",
     content: (editNote && editNote.content) || "",
-    profile_img: isCreate ? null : editNote.profile_img,
+    profile_img:
+      !isCreate && editNote.profile_img ? editNote.profile_img : null,
   };
-  const { token } = useContext(UserContext);
+  const { token, setSeverity, setSnackBarMsg, setSnackBarOpen } =
+    useContext(UserContext);
   const [redirect, setRedirect] = useState(false);
   const [fileImg, setFileImg] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   // format for images
   const SUPPORTED_FORMATS = ["image/jpg", "image/png", "image/jpeg"];
@@ -38,7 +42,9 @@ const NoteFrom = ({ isCreate, editNote }) => {
       .test("fileFormat", "File is not supported", (value) => {
         if (value) {
           const supportedFormats = ["jpg", "png", "jpeg"];
-          return supportedFormats.includes(value.name.split(".").pop());
+          return supportedFormats.includes(
+            value.name ? value.name.split(".").pop() : value.split(".").pop()
+          );
         }
         return true;
       }),
@@ -62,6 +68,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
 
   // form submit function
   const submit = async (values) => {
+    setSaving(true);
     let APIURL;
     if (isCreate) {
       APIURL = `${import.meta.env.VITE_API_URL}/create`;
@@ -72,7 +79,7 @@ const NoteFrom = ({ isCreate, editNote }) => {
     formData.append("title", values.title);
     formData.append("content", values.content);
     formData.append("profile_img", values.profile_img);
-    console.log(token.token);
+
     const response = await fetch(APIURL, {
       method: "POST",
       body: formData,
@@ -82,41 +89,23 @@ const NoteFrom = ({ isCreate, editNote }) => {
     });
 
     if (response.status === 201) {
+      setSeverity("success");
+      setSnackBarMsg("Created Successfully");
+      setSnackBarOpen(true);
       setRedirect(true);
     } else {
-      toast("Something went wrong!", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: "Bounce",
-      });
+      setSeverity("error");
+      setSnackBarMsg("Something went wrong!");
+      setSnackBarOpen(true);
     }
+    setSaving(false);
   };
+
   if (redirect) {
     return <Navigate to={"/"} />;
   }
   return (
     <section className="p-8 mb-10">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        transition={Bounce}
-      />
-      {/* Same as */}
-      <ToastContainer />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold ">
           {isCreate ? "Create a Note " : "Edit your note"}
@@ -236,12 +225,21 @@ const NoteFrom = ({ isCreate, editNote }) => {
               ></Field>
               <StyledErrMsg name="content" />
             </div>
-            <button
-              type="submit"
-              className="bg-fuchsia-600 p-3 text-white w-1/3 float-end font-bold rounded-md"
-            >
-              {isCreate ? "Save note" : "Update note"}
-            </button>
+            {saving ? (
+              <button
+                className="bg-fuchsia-600 p-3 text-white w-1/3 float-end font-bold rounded-md"
+                disabled={saving}
+              >
+                Saving...
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="bg-fuchsia-600 p-3 text-white w-1/3 float-end font-bold rounded-md"
+              >
+                {isCreate ? "Save note" : "Update note"}
+              </button>
+            )}
           </Form>
         )}
       </Formik>
